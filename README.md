@@ -4,11 +4,13 @@
 
 Unofficial PHP client for the Tinify API, used for [TinyPNG](https://tinypng.com) and [TinyJPG](https://tinyjpg.com). Tinify compresses your images intelligently. Read more at [http://tinify.com](http://tinify.com).
 
+This is a fork from [tinify/tinify-php](https://github.com/tinify/tinify-php).
+
 ## Documentation
 
 [Go to the documentation for the PHP client](https://tinypng.com/developers/reference/php).
 
-⚠️ this client implementation is differents from the documentation.
+⚠️ this client implementation is different from the documentation.
 
 ## Installation
 
