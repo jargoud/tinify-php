@@ -2,24 +2,33 @@
 
 namespace Tinify;
 
-class Client {
-    const API_ENDPOINT = "https://api.tinify.com";
+use Tinify\Exception\ClientException;
+use Tinify\Exception\ConnectionException;
+use Tinify\Exception\Exception;
 
-    const RETRY_COUNT = 1;
-    const RETRY_DELAY = 500;
+class Client
+{
+    public const API_ENDPOINT = "https://api.tinify.com";
 
-    private $options;
+    public const RETRY_COUNT = 1;
+    public const RETRY_DELAY = 500;
 
-    public static function userAgent() {
-        $curl = curl_version();
-        return "Tinify/" . VERSION . " PHP/" . PHP_VERSION . " curl/" . $curl["version"];
-    }
+    /**
+     * @var array
+     */
+    protected $options;
 
-    private static function caBundle() {
-        return __DIR__ . "/../data/cacert.pem";
-    }
-
-    function __construct($key, $app_identifier = NULL, $proxy = NULL) {
+    /**
+     * Client constructor.
+     *
+     * @param string $key
+     * @param string|null $app_identifier
+     * @param string|null $proxy
+     * @throws ClientException
+     * @throws ConnectionException
+     */
+    public function __construct(string $key, string $app_identifier = null, string $proxy = null)
+    {
         $curl = curl_version();
 
         if (!($curl["features"] & CURL_VERSION_SSL)) {
@@ -55,8 +64,12 @@ class Client {
             }
 
             $creds = "";
-            if (isset($parts["user"])) $creds .= $parts["user"];
-            if (isset($parts["pass"])) $creds .= ":" . $parts["pass"];
+            if (isset($parts["user"])) {
+                $creds .= $parts["user"];
+            }
+            if (isset($parts["pass"])) {
+                $creds .= ":" . $parts["pass"];
+            }
 
             if ($creds) {
                 $this->options[CURLOPT_PROXYAUTH] = CURLAUTH_ANY;
@@ -65,14 +78,34 @@ class Client {
         }
     }
 
-    function request($method, $url, $body = NULL) {
+    private static function caBundle(): string
+    {
+        return __DIR__ . "/../data/cacert.pem";
+    }
+
+    public static function userAgent(): string
+    {
+        $curl = curl_version();
+        return sprintf("Tinify/%s PHP/%s curl/%s", VERSION, PHP_VERSION, $curl["version"]);
+    }
+
+    /**
+     * @param $method
+     * @param $url
+     * @param null $body
+     * @return object
+     * @throws ConnectionException
+     * @throws Exception
+     */
+    public function request($method, $url, $body = null)
+    {
         $header = array();
         if (is_array($body)) {
             if (!empty($body)) {
                 $body = json_encode($body);
                 array_push($header, "Content-Type: application/json");
             } else {
-                $body = NULL;
+                $body = null;
             }
         }
 
@@ -117,39 +150,52 @@ class Client {
                 }
 
                 if ($status >= 200 && $status <= 299) {
-                    return (object) array("body" => $body, "headers" => $headers);
+                    return (object)array("body" => $body, "headers" => $headers);
                 }
 
                 $details = json_decode($body);
                 if (!$details) {
-                    $message = sprintf("Error while parsing response: %s (#%d)",
+                    $message = sprintf(
+                        "Error while parsing response: %s (#%d)",
                         PHP_VERSION_ID >= 50500 ? json_last_error_msg() : "Error",
-                        json_last_error());
-                    $details = (object) array(
+                        json_last_error()
+                    );
+                    $details = (object)array(
                         "message" => $message,
-                        "error" => "ParseError"
+                        "error" => "ParseError",
                     );
                 }
 
-                if ($retries > 0 && $status >= 500) continue;
+                if ($retries > 0 && $status >= 500) {
+                    continue;
+                }
                 throw Exception::create($details->message, $details->error, $status);
             } else {
                 $message = sprintf("%s (#%d)", curl_error($request), curl_errno($request));
                 curl_close($request);
-                if ($retries > 0) continue;
+                if ($retries > 0) {
+                    continue;
+                }
                 throw new ConnectionException("Error while connecting: " . $message);
             }
         }
     }
 
-    protected static function parseHeaders($headers) {
+    /**
+     * @param array|string $headers
+     * @return array
+     */
+    protected static function parseHeaders($headers): array
+    {
         if (!is_array($headers)) {
             $headers = explode("\r\n", $headers);
         }
 
         $res = array();
         foreach ($headers as $header) {
-            if (empty($header)) continue;
+            if (empty($header)) {
+                continue;
+            }
             $split = explode(":", $header, 2);
             if (count($split) === 2) {
                 $res[strtolower($split[0])] = trim($split[1]);
