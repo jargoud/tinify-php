@@ -2,95 +2,95 @@
 
 namespace Tinify;
 
-const VERSION = "1.5.2";
+use GuzzleHttp\Exception\GuzzleException;
 
-class Tinify {
-    private static $key = NULL;
-    private static $appIdentifier = NULL;
-    private static $proxy = NULL;
+const VERSION = "2.0.0";
 
-    private static $compressionCount = NULL;
-    private static $client = NULL;
+class Tinify
+{
+    /**
+     * @var string
+     */
+    protected static $key = null;
 
-    public static function setKey($key) {
+    /**
+     * @var int
+     */
+    protected static $compressionCount = null;
+
+    /**
+     * @var Client
+     */
+    protected static $client = null;
+
+    public static function getKey(): string
+    {
+        return self::$key;
+    }
+
+    public static function setKey(string $key): void
+    {
         self::$key = $key;
-        self::$client = NULL;
+        self::$client = null;
     }
 
-    public static function setAppIdentifier($appIdentifier) {
-        self::$appIdentifier = $appIdentifier;
-        self::$client = NULL;
-    }
-
-    public static function setProxy($proxy) {
-        self::$proxy = $proxy;
-        self::$client = NULL;
-    }
-
-    public static function getCompressionCount() {
+    public static function getCompressionCount(): int
+    {
         return self::$compressionCount;
     }
 
-    public static function setCompressionCount($compressionCount) {
+    public static function setCompressionCount(int $compressionCount): void
+    {
         self::$compressionCount = $compressionCount;
     }
 
-    public static function getClient() {
+    /**
+     * @return Client|null
+     * @throws AccountException
+     */
+    public static function getClient(): ?Client
+    {
         if (!self::$key) {
-            throw new AccountException("Provide an API key with Tinify\setKey(...)");
+            throw new AccountException("Provide an API key with Tinify::setKey(...)");
         }
 
         if (!self::$client) {
-            self::$client = new Client(self::$key, self::$appIdentifier, self::$proxy);
+            self::$client = new Client(self::$key);
         }
 
         return self::$client;
     }
 
-    public static function setClient($client) {
-        self::$client = $client;
+    /**
+     * @param string $path
+     * @return Source
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public static function fromFile(string $path): Source
+    {
+        return Source::fromFile($path);
     }
-}
 
-function setKey($key) {
-    return Tinify::setKey($key);
-}
+    /**
+     * @param string $string
+     * @return Source
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public static function fromBuffer(string $string): Source
+    {
+        return Source::fromBuffer($string);
+    }
 
-function setAppIdentifier($appIdentifier) {
-    return Tinify::setAppIdentifier($appIdentifier);
-}
-
-function setProxy($proxy) {
-    return Tinify::setProxy($proxy);
-}
-
-function getCompressionCount() {
-    return Tinify::getCompressionCount();
-}
-
-function compressionCount() {
-    return Tinify::getCompressionCount();
-}
-
-function fromFile($path) {
-    return Source::fromFile($path);
-}
-
-function fromBuffer($string) {
-    return Source::fromBuffer($string);
-}
-
-function fromUrl($string) {
-    return Source::fromUrl($string);
-}
-
-function validate() {
-    try {
-        Tinify::getClient()->request("post", "/shrink");
-    } catch (AccountException $err) {
-        if ($err->status == 429) return true;
-        throw $err;
-    } catch (ClientException $err) {
-        return true;
+    /**
+     * @param string $string
+     * @return Source
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public static function fromUrl(string $string): Source
+    {
+        return Source::fromUrl($string);
     }
 }

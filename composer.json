@@ -1,41 +1,41 @@
 {
-  "name": "tinify/tinify",
-  "description": "PHP client for the Tinify API. Tinify compresses your images intelligently. Read more at https://tinify.com.",
-  "keywords": [
-    "tinify",
-    "tinypng",
-    "tinyjpg",
-    "compress",
-    "images",
-    "api"
-  ],
-
-  "homepage": "https://tinify.com/developers",
-  "license": "MIT",
-
-  "support": {
-    "email": "support@tinify.com"
-  },
-
-  "authors": [{
-    "name": "Rolf Timmermans",
-    "email": "rolftimmermans@voormedia.com"
-  }],
-
-  "require": {
-    "php": ">=5.3.0",
-    "ext-curl": "*",
-    "ext-json": "*",
-    "lib-curl": ">=7.20.0"
-  },
-
-  "require-dev": {
-    "symfony/yaml": "~2.0",
-    "phpunit/phpunit": "~4.0"
-  },
-
-  "autoload": {
-    "files": ["lib/Tinify.php", "lib/Tinify/Exception.php"],
-    "psr-4": {"Tinify\\": "lib/Tinify/"}
-  }
+    "name": "tinify/tinify",
+    "description": "PHP client for the Tinify API. Tinify compresses your images intelligently. Read more at https://tinify.com.",
+    "keywords": [
+        "tinify",
+        "tinypng",
+        "tinyjpg",
+        "compress",
+        "images",
+        "api"
+    ],
+    "homepage": "https://tinify.com/developers",
+    "license": "MIT",
+    "support": {
+        "email": "support@tinify.com"
+    },
+    "authors": [
+        {
+            "name": "Rolf Timmermans",
+            "email": "rolftimmermans@voormedia.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0"
+    },
+    "require-dev": {
+        "guzzlehttp/guzzle": "^6.3.1|^7.0.1",
+        "phpro/grumphp": "^1.1",
+        "squizlabs/php_codesniffer": "^3.0",
+        "symfony/dotenv": "^5.1",
+        "phpunit/phpunit": "^8.5.8|^9.3.3"
+    },
+    "autoload": {
+        "files": [
+            "lib/Tinify.php"
+        ],
+        "psr-4": {
+            "Tinify\\": "lib/Tinify/"
+        }
+    }
 }

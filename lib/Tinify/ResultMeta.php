@@ -2,22 +2,30 @@
 
 namespace Tinify;
 
-class ResultMeta {
+class ResultMeta
+{
+    /**
+     * @var array
+     */
     protected $meta;
 
-    public function __construct($meta) {
+    public function __construct(array $meta)
+    {
         $this->meta = $meta;
     }
 
-    public function width() {
+    public function width(): int
+    {
         return intval($this->meta["image-width"]);
     }
 
-    public function height() {
+    public function height(): int
+    {
         return intval($this->meta["image-height"]);
     }
 
-    public function location() {
-        return isset($this->meta["location"]) ? $this->meta["location"] : null;
+    public function location(): ?string
+    {
+        return $this->meta["location"] ?? null;
     }
 }

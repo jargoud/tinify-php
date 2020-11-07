@@ -2,68 +2,188 @@
 
 namespace Tinify;
 
-class Source {
-    private $url, $commands;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\RequestOptions;
 
-    public static function fromFile($path) {
-        return self::fromBuffer(file_get_contents($path));
-    }
+class Source
+{
+    /**
+     * @var string
+     */
+    protected $url;
 
-    public static function fromBuffer($string) {
-        $response = Tinify::getClient()->request("post", "/shrink", $string);
-        return new self($response->headers["location"]);
-    }
+    protected $commands = [];
 
-    public static function fromUrl($url) {
-        $body = array("source" => array("url" => $url));
-        $response = Tinify::getClient()->request("post", "/shrink", $body);
-        return new self($response->headers["location"]);
-    }
-
-    public function __construct($url, $commands = array()) {
+    public function __construct(string $url, array $commands = [])
+    {
         $this->url = $url;
         $this->commands = $commands;
     }
 
-    public function preserve() {
-        $options = $this->flatten(func_get_args());
-        $commands = array_merge($this->commands, array("preserve" => $options));
-        return new self($this->url, $commands);
+    /**
+     * @param string $path
+     * @return static
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public static function fromFile(string $path): self
+    {
+        return self::fromBuffer(file_get_contents($path));
     }
 
-    public function resize($options) {
-        $commands = array_merge($this->commands, array("resize" => $options));
-        return new self($this->url, $commands);
+    /**
+     * @param string $string
+     * @return static
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public static function fromBuffer(string $string): self
+    {
+        $response = Tinify::getClient()->post(
+            "/shrink",
+            [
+                RequestOptions::BODY => $string,
+            ]
+        );
+
+        return new self($response->getHeaderLine("location"));
     }
 
-    public function store($options) {
-        $response = Tinify::getClient()->request("post", $this->url,
-            array_merge($this->commands, array("store" => $options)));
-        return new Result($response->headers, $response->body);
+    /**
+     * @param string $url
+     * @return static
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public static function fromUrl(string $url): self
+    {
+        $response = Tinify::getClient()->post(
+            "/shrink",
+            [
+                RequestOptions::JSON => [
+                    'source' => [
+                        'url' => $url,
+                    ],
+                ],
+            ]
+        );
+
+        return new self($response->getHeaderLine("location"));
     }
 
-    public function result() {
-        $response = Tinify::getClient()->request("get", $this->url, $this->commands);
-        return new Result($response->headers, $response->body);
+    public function getUrl(): string
+    {
+        return $this->url;
     }
 
-    public function toFile($path) {
+    public function getCommands(): array
+    {
+        return $this->commands;
+    }
+
+    public function preserve(array $options): self
+    {
+        return $this->addCommands('preserve', $options);
+//        return new self(
+//            $this->url,
+//            array_merge(
+//                $this->commands,
+//                ["preserve" => $this->flatten(func_get_args())]
+//            )
+//        );
+    }
+
+    public function addCommands(string $command, array $options): self
+    {
+        $this->commands = array_merge(
+            $this->commands,
+            [$command => $options]
+        );
+
+        return $this;
+    }
+
+//    protected function flatten(array $options): array
+//    {
+//        $flattened = array();
+//        foreach ($options as $option) {
+//            if (is_array($option)) {
+//                $flattened = array_merge($flattened, $option);
+//            } else {
+//                array_push($flattened, $option);
+//            }
+//        }
+//        return $flattened;
+//    }
+
+    public function resize(array $options): self
+    {
+        return $this->addCommands('resize', $options);
+//        return new self(
+//            $this->url,
+//            array_merge(
+//                $this->commands,
+//                ["resize" => $options]
+//            )
+//        );
+    }
+
+    /**
+     * @param array $options
+     * @return Result
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public function store(array $options): Result
+    {
+        $response = Tinify::getClient()->post(
+            $this->url,
+            [
+                RequestOptions::JSON => array_merge(
+                    $this->commands,
+                    ["store" => $options]
+                ),
+            ]
+        );
+
+        return new Result($response->getHeaders(), (string)$response->getBody());
+    }
+
+    /**
+     * @param string $path
+     * @return false|int
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public function toFile(string $path)
+    {
         return $this->result()->toFile($path);
     }
 
-    public function toBuffer() {
-        return $this->result()->toBuffer();
+    /**
+     * @return Result
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public function result(): Result
+    {
+        $response = Tinify::getClient()->get(
+            $this->url,
+            [
+                RequestOptions::JSON => $this->commands,
+            ]
+        );
+
+        return new Result($response->getHeaders(), (string)$response->getBody());
     }
 
-    private static function flatten($options) {
-        $flattened = array();
-        foreach ($options as $option) {
-            if (is_array($option)) {
-                $flattened = array_merge($flattened, $option);
-            } else {
-                array_push($flattened, $option);
-            }
-        }
-        return $flattened;
+    /**
+     * @return string
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public function toBuffer(): string
+    {
+        return $this->result()->toBuffer();
     }
 }
