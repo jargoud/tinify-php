@@ -2,40 +2,74 @@
 
 namespace Tinify;
 
+use Tinify\Exception\AccountException;
+use Tinify\Exception\ClientException as ClientExceptionAlias;
+
 const VERSION = "1.5.2";
 
-class Tinify {
-    private static $key = NULL;
-    private static $appIdentifier = NULL;
-    private static $proxy = NULL;
+class Tinify
+{
+    /**
+     * @var string
+     */
+    protected static $key = null;
 
-    private static $compressionCount = NULL;
-    private static $client = NULL;
+    /**
+     * @var string
+     */
+    protected static $appIdentifier = null;
 
-    public static function setKey($key) {
+    /**
+     * @var string
+     */
+    protected static $proxy = null;
+
+    /**
+     * @var int
+     */
+    protected static $compressionCount = null;
+
+    /**
+     * @var Client
+     */
+    protected static $client = null;
+
+    public static function setKey(string $key): void
+    {
         self::$key = $key;
-        self::$client = NULL;
+        self::$client = null;
     }
 
-    public static function setAppIdentifier($appIdentifier) {
+    public static function setAppIdentifier(string $appIdentifier): void
+    {
         self::$appIdentifier = $appIdentifier;
-        self::$client = NULL;
+        self::$client = null;
     }
 
-    public static function setProxy($proxy) {
+    public static function setProxy(string $proxy): void
+    {
         self::$proxy = $proxy;
-        self::$client = NULL;
+        self::$client = null;
     }
 
-    public static function getCompressionCount() {
+    public static function getCompressionCount(): int
+    {
         return self::$compressionCount;
     }
 
-    public static function setCompressionCount($compressionCount) {
+    public static function setCompressionCount(int $compressionCount): void
+    {
         self::$compressionCount = $compressionCount;
     }
 
-    public static function getClient() {
+    /**
+     * @return Client|null
+     * @throws AccountException
+     * @throws ClientExceptionAlias
+     * @throws Exception\ConnectionException
+     */
+    public static function getClient(): ?Client
+    {
         if (!self::$key) {
             throw new AccountException("Provide an API key with Tinify\setKey(...)");
         }
@@ -47,50 +81,89 @@ class Tinify {
         return self::$client;
     }
 
-    public static function setClient($client) {
+    public static function setClient($client)
+    {
         self::$client = $client;
     }
 }
 
-function setKey($key) {
-    return Tinify::setKey($key);
+function setKey(string $key): void
+{
+    Tinify::setKey($key);
 }
 
-function setAppIdentifier($appIdentifier) {
-    return Tinify::setAppIdentifier($appIdentifier);
+function setAppIdentifier(string $appIdentifier): void
+{
+    Tinify::setAppIdentifier($appIdentifier);
 }
 
-function setProxy($proxy) {
-    return Tinify::setProxy($proxy);
+function setProxy(string $proxy): void
+{
+    Tinify::setProxy($proxy);
 }
 
-function getCompressionCount() {
+function getCompressionCount(): int
+{
     return Tinify::getCompressionCount();
 }
 
-function compressionCount() {
+function compressionCount(): int
+{
     return Tinify::getCompressionCount();
 }
 
-function fromFile($path) {
+/**
+ * @param string $path
+ * @return Source
+ * @throws AccountException
+ * @throws Exception\ConnectionException
+ * @throws Exception\Exception
+ */
+function fromFile(string $path): Source
+{
     return Source::fromFile($path);
 }
 
-function fromBuffer($string) {
+/**
+ * @param string $string
+ * @return Source
+ * @throws AccountException
+ * @throws Exception\ConnectionException
+ * @throws Exception\Exception
+ */
+function fromBuffer(string $string): Source
+{
     return Source::fromBuffer($string);
 }
 
-function fromUrl($string) {
+/**
+ * @param $string
+ * @return Source
+ * @throws AccountException
+ * @throws Exception\ConnectionException
+ * @throws Exception\Exception
+ */
+function fromUrl(string $string): Source
+{
     return Source::fromUrl($string);
 }
 
-function validate() {
+/**
+ * @return bool
+ * @throws AccountException
+ * @throws Exception\ConnectionException
+ * @throws Exception\Exception
+ */
+function validate(): bool
+{
     try {
         Tinify::getClient()->request("post", "/shrink");
     } catch (AccountException $err) {
-        if ($err->status == 429) return true;
+        if ($err->status == 429) {
+            return true;
+        }
         throw $err;
-    } catch (ClientException $err) {
+    } catch (ClientExceptionAlias $err) {
         return true;
     }
 }
