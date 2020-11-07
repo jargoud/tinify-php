@@ -21,10 +21,7 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0",
-        "ext-curl": "*",
-        "ext-json": "*",
-        "lib-curl": ">=7.19.0"
+        "php": ">=7.1.0"
     },
     "require-dev": {
         "guzzlehttp/guzzle": "^6.3.1|^7.0.1",
@@ -35,8 +32,7 @@
     },
     "autoload": {
         "files": [
-            "lib/Tinify.php",
-            "lib/Tinify/Exception.php"
+            "lib/Tinify.php"
         ],
         "psr-4": {
             "Tinify\\": "lib/Tinify/"
