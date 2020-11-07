@@ -1,6 +1,8 @@
 <?php
 
-namespace Tinify\Exception;
+namespace Tinify;
+
+use Exception;
 
 class AccountException extends Exception
 {
