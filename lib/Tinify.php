@@ -2,10 +2,9 @@
 
 namespace Tinify;
 
-use Tinify\Exception\AccountException;
-use Tinify\Exception\ClientException as ClientExceptionAlias;
+use GuzzleHttp\Exception\GuzzleException;
 
-const VERSION = "1.5.2";
+const VERSION = "2.0.0";
 
 class Tinify
 {
@@ -13,16 +12,6 @@ class Tinify
      * @var string
      */
     protected static $key = null;
-
-    /**
-     * @var string
-     */
-    protected static $appIdentifier = null;
-
-    /**
-     * @var string
-     */
-    protected static $proxy = null;
 
     /**
      * @var int
@@ -34,21 +23,14 @@ class Tinify
      */
     protected static $client = null;
 
+    public static function getKey(): string
+    {
+        return self::$key;
+    }
+
     public static function setKey(string $key): void
     {
         self::$key = $key;
-        self::$client = null;
-    }
-
-    public static function setAppIdentifier(string $appIdentifier): void
-    {
-        self::$appIdentifier = $appIdentifier;
-        self::$client = null;
-    }
-
-    public static function setProxy(string $proxy): void
-    {
-        self::$proxy = $proxy;
         self::$client = null;
     }
 
@@ -65,105 +47,50 @@ class Tinify
     /**
      * @return Client|null
      * @throws AccountException
-     * @throws ClientExceptionAlias
-     * @throws Exception\ConnectionException
      */
     public static function getClient(): ?Client
     {
         if (!self::$key) {
-            throw new AccountException("Provide an API key with Tinify\setKey(...)");
+            throw new AccountException("Provide an API key with Tinify::setKey(...)");
         }
 
         if (!self::$client) {
-            self::$client = new Client(self::$key, self::$appIdentifier, self::$proxy);
+            self::$client = new Client(self::$key);
         }
 
         return self::$client;
     }
 
-    public static function setClient($client)
+    /**
+     * @param string $path
+     * @return Source
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public static function fromFile(string $path): Source
     {
-        self::$client = $client;
+        return Source::fromFile($path);
     }
-}
 
-function setKey(string $key): void
-{
-    Tinify::setKey($key);
-}
+    /**
+     * @param string $string
+     * @return Source
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public static function fromBuffer(string $string): Source
+    {
+        return Source::fromBuffer($string);
+    }
 
-function setAppIdentifier(string $appIdentifier): void
-{
-    Tinify::setAppIdentifier($appIdentifier);
-}
-
-function setProxy(string $proxy): void
-{
-    Tinify::setProxy($proxy);
-}
-
-function getCompressionCount(): int
-{
-    return Tinify::getCompressionCount();
-}
-
-function compressionCount(): int
-{
-    return Tinify::getCompressionCount();
-}
-
-/**
- * @param string $path
- * @return Source
- * @throws AccountException
- * @throws Exception\ConnectionException
- * @throws Exception\Exception
- */
-function fromFile(string $path): Source
-{
-    return Source::fromFile($path);
-}
-
-/**
- * @param string $string
- * @return Source
- * @throws AccountException
- * @throws Exception\ConnectionException
- * @throws Exception\Exception
- */
-function fromBuffer(string $string): Source
-{
-    return Source::fromBuffer($string);
-}
-
-/**
- * @param $string
- * @return Source
- * @throws AccountException
- * @throws Exception\ConnectionException
- * @throws Exception\Exception
- */
-function fromUrl(string $string): Source
-{
-    return Source::fromUrl($string);
-}
-
-/**
- * @return bool
- * @throws AccountException
- * @throws Exception\ConnectionException
- * @throws Exception\Exception
- */
-function validate(): bool
-{
-    try {
-        Tinify::getClient()->request("post", "/shrink");
-    } catch (AccountException $err) {
-        if ($err->status == 429) {
-            return true;
-        }
-        throw $err;
-    } catch (ClientExceptionAlias $err) {
-        return true;
+    /**
+     * @param string $string
+     * @return Source
+     * @throws AccountException
+     * @throws GuzzleException
+     */
+    public static function fromUrl(string $string): Source
+    {
+        return Source::fromUrl($string);
     }
 }
