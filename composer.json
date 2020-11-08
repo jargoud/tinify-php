@@ -41,5 +41,10 @@
         "psr-4": {
             "Tinify\\": "lib/Tinify/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
     }
 }
