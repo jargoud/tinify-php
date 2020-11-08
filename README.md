@@ -19,14 +19,14 @@ Install the API client with Composer. Add this to your `composer.json`:
 ```json
 {
   "require": {
-    "tinify/tinify": "^2.0"
+    "jargoud/tinify-php": "^2.0"
   },
-  "repositories": {
-    "tinify-php": {
+  "repositories": [
+    {
       "type": "vcs",
-      "url": "https://github.com/jargoud/tinify-php"
+      "url": "git@github.com:jargoud/tinify-php.git"
     }
-  }
+  ]
 }
 ```
 
