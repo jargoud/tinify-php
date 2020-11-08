@@ -169,9 +169,9 @@ class Source
     {
         $response = Tinify::getClient()->get(
             $this->url,
-            [
-                RequestOptions::JSON => $this->commands,
-            ]
+            empty($this->commands)
+                ? []
+                : [RequestOptions::JSON => $this->commands]
         );
 
         return new Result($response->getHeaders(), (string)$response->getBody());
